@@ -47,17 +47,35 @@ std::vector<float> input()
         while (!fin.eof())
         {
             std::string buff;
-            int i;
+            float i = 0;
             getline(fin, buff, ' ');
             try
             {
-                i = stof(buff);
-                in.push_back(i);
+                int a = buff.find('\n');
+                if (a > 0)
+                {
+                    std::string buff2;
+                    for (int i = a; i < buff.length(); i++)
+                    {
+                        buff2.push_back(buff[i]);
+                    }
+                    i = std::stof(buff);
+                    in.push_back(i);
+                    i = std::stof(buff2);
+                    in.push_back(i);
+                }
+                else
+                {
+                    i = std::stof(buff);
+                    in.push_back(i);
+                }
             }
             catch (std::invalid_argument &e)
             {
                 {
                     std::cout << "Некоректные данные \"" << buff << "\"\n";
+                    in.clear();
+                    return in;
                 }
             }
         }
@@ -122,12 +140,6 @@ float *solution(float *a[], float *b, int size)
 {
 
     float *x = new float[size], u[size], v[size];
-    for (int i = 0; i < size; i++)
-    {
-        x[i] = 0;
-        u[i] = 0;
-        v[i] = 0;
-    }
     v[0] = a[0][1] / (-a[0][0]);
     u[0] = (-b[0]) / (-a[0][0]);
     for (int i = 1; i < size - 1; i++)
@@ -165,15 +177,25 @@ int main()
     int size = get_size();
     if (size == 0)
         return 0;
-    float a[size][size] = {
-        {5, -1, 0, 0},
-        {2, 4.6, -1, 0},
-        {0, 2, 3.6, -0.8},
-        {0, 0, 3, 4.4}},
-          b[size] = {2, 3.3, 2.6, 7.2}, *x = new float[size];
-    float *matrix[size];
+    std::vector<float> in = input();
+    if (in.empty())
+        return 0;
+
+    float b[size], a[size][size], *matrix[size], *x = new float[size];
+    int c = 0;
     for (int i = 0; i < size; i++)
+    {
+        for (int j = 0; j < size; j++)
+        {
+            a[i][j] = in[c];
+            c++;
+        }
+        b[i] = in[c];
+        c++;
         matrix[i] = a[i];
+    }
+
+    in.clear();
     print_input(matrix, b, size);
     if (check(matrix, size))
     {
