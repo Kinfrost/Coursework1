@@ -14,6 +14,11 @@ int get_size()
     {
         std::string buff;
         getline(fin, buff);
+        if (buff.length() <= 1)
+        {
+            std::cout << "Пустой файл ввода, заполните его и запустите снова" << std::endl;
+            return 0;
+        }
         for (int i = 1; i < buff.length() - 1; i++)
             if (buff[i] == ' ' && buff[i + 1] != '\n')
             {
@@ -138,24 +143,27 @@ bool check(float *a[], int size)
 
 float *solution(float *a[], float *b, int size)
 {
-
     float *x = new float[size], u[size], v[size];
+
     v[0] = a[0][1] / (-a[0][0]);
     u[0] = (-b[0]) / (-a[0][0]);
+
     for (int i = 1; i < size - 1; i++)
     {
         v[i] = a[i][i + 1] / (-a[i][i] - a[i][i - 1] * v[i - 1]);
         u[i] = (a[i][i - 1] * u[i - 1] - b[i]) / (-a[i][i] - a[i][i - 1] * v[i - 1]);
     }
+
     v[size - 1] = 0;
     u[size - 1] = (a[size - 1][size - 2] * u[size - 2] - b[size - 1]) / (-a[size - 1][size - 1] - a[size - 1][size - 2] * v[size - 2]);
+
     std::cout << "Прогоночные коэффициенты V:" << std::endl;
     for (int i = 0; i < size; i++)
     {
-
         std::cout << "V" << i + 1 << "=" << v[i] << std::endl;
     }
     std::cout << std::endl;
+
     std::cout << "Прогоночные коэффициенты U:" << std::endl;
     for (int i = 0; i < size; i++)
     {
@@ -164,7 +172,6 @@ float *solution(float *a[], float *b, int size)
     std::cout << std::endl;
 
     x[size - 1] = u[size - 1];
-
     for (int i = size - 1; i > 0; --i)
     {
         x[i - 1] = v[i - 1] * x[i] + u[i - 1];
@@ -172,8 +179,23 @@ float *solution(float *a[], float *b, int size)
     return x;
 }
 
+void output(int size, float *x)
+{
+    std::ofstream fout;
+    fout.open(out_fname, std::ios_base::trunc);
+    std::cout << "Решение:" << std::endl;
+    for (int i = 0; i < size; i++)
+    {
+        fout << "X" << i + 1 << "=" << x[i] << '\n';
+        std::cout << "X" << i + 1 << "=" << x[i] << std::endl;
+    }
+    std::cout << std::endl;
+    fout.close();
+}
+
 int main()
 {
+    // Проверка на правильность данных и получение их из файла
     int size = get_size();
     if (size == 0)
         return 0;
@@ -181,6 +203,7 @@ int main()
     if (in.empty())
         return 0;
 
+    // блок для превращения вектора в матрицу
     float b[size], a[size][size], *matrix[size], *x = new float[size];
     int c = 0;
     for (int i = 0; i < size; i++)
@@ -194,18 +217,15 @@ int main()
         c++;
         matrix[i] = a[i];
     }
-
     in.clear();
+
     print_input(matrix, b, size);
+
+    // Основной блок в котором проверяется возможность решения и решается СЛАУ
     if (check(matrix, size))
     {
         x = solution(matrix, b, size);
-        std::cout << "Решение:" << std::endl;
-        for (int i = 0; i < size; i++)
-        {
-            std::cout << "X" << i + 1 << "=" << x[i] << std::endl;
-        }
-        std::cout << std::endl;
+        output(size, x);
     }
     return 0;
 }
